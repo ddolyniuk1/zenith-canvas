@@ -1,0 +1,53 @@
+import * as PIXI from "pixi.js";
+
+export default class PanZoomContainer extends PIXI.Graphics {
+  private _dragging: boolean;
+  private _lastPosition: PIXI.Point;
+
+  constructor() {
+    super();
+     
+    (this as any).eventMode = 'dynamic';
+    this._dragging = false;
+    this._lastPosition = new PIXI.Point();
+
+    (this as any).on('mousedown', this.onDragStart, this)
+        .on('mouseup', this.onDragEnd, this)
+        .on('mouseupoutside', this.onDragEnd, this)
+        .on('mousemove', this.onDragMove, this)
+        .on('wheel', this.onWheel, this);
+  }
+
+  private onDragStart(event: any): void {
+    this._dragging = true;
+    this._lastPosition = event.data.getLocalPosition(this.parent);
+  }
+
+  private onDragEnd(): void {
+    this._dragging = false;
+  }
+
+  private onDragMove(event: any): void {
+    if (!this._dragging) return;
+    const newPosition = event.data.getLocalPosition(this.parent);
+    this.position.x += newPosition.x - this._lastPosition.x;
+    this.position.y += newPosition.y - this._lastPosition.y;
+    this._lastPosition = newPosition;
+  }
+
+  private onWheel(event: WheelEvent): void {
+    const scaleFactor = event.deltaY > 0 ? 0.9 : 1.1;
+    this.scale.x *= scaleFactor;
+    this.scale.y *= scaleFactor;
+  }
+
+  public centerAndScale(target: any): void { 
+   
+    target.on('loaded', () => {
+        console.log("hello");
+    });
+    
+    
+  }
+  
+}
