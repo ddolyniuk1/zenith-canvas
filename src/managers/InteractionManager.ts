@@ -1,10 +1,13 @@
 import ZenithApp from "../ZenithApp";
 import * as PIXI from "pixi.js";
+import { EditablePolygon } from "../components/EditablePolygon";
+import IDragHandler from "../base/interfaces/IDragHandler";
 
 export default class InteractionManager {
   panZoomContainer: PIXI.Container<PIXI.DisplayObject>;
   dragStartPosition: PIXI.Point;
     scaleFactor: number = 1;
+    dragTarget : IDragHandler | null = null;
   constructor(private _app: ZenithApp) {
     this.initDefaultInteractionBehavior();
   }
@@ -33,23 +36,29 @@ export default class InteractionManager {
     // Handle dragging to pan the stage
     stage.interactive = true;
 
-    stage.on("pointerdown", (event: any) => {
-      const evtPos = event.data.global.clone();
-      this.dragStartPosition = new PIXI.Point(evtPos.x, evtPos.y);
-      panZoomContainer.dragging = true;
+    stage.on("pointerdown", (event: any) => { 
+      if(this.dragTarget) {
+        this.draggableDragStart(event);
+      } else {
+        this.canvasDragStart(event);
+      } 
     });
 
     stage.on("pointerup", () => {
-      panZoomContainer.dragging = false;
+      if(this.dragTarget) {
+        this.draggableDragStop();
+      } else {
+        this.canvasDragStop();
+      }
     });
 
     stage.on("pointermove", (event: any) => {
-      if (panZoomContainer.dragging) {
-        let mousePos = event.data.global.clone();
-        panZoomContainer.x += mousePos.x - this.dragStartPosition.x;
-        panZoomContainer.y += mousePos.y - this.dragStartPosition.y; 
-        this.dragStartPosition = mousePos;
+      if(this.dragTarget) {
+        this.draggableDragContinue(event);
+      } else { 
+        this.canvasDragContinue(event);
       }
+
     }); 
 
     stage.on("wheel", (event: any) => { 
@@ -69,9 +78,70 @@ export default class InteractionManager {
     });
 
     this.zoomToChild(imageRectangle);
+
+    let e = new EditablePolygon();
+    this.panZoomContainer.addChild(e);
   }
 
-  zoomToChild(child: PIXI.DisplayObject) {
+  canvasDragStart(event: any) {
+    const evtPos = event.data.global.clone();
+    this.dragStartPosition = new PIXI.Point(evtPos.x, evtPos.y);
+    (this.panZoomContainer as any).dragging = true;
+  }
+  
+  canvasDragStop() {
+    (this.panZoomContainer as any).dragging = false;
+  }
+  
+  canvasDragContinue(event : any) {
+    const panZoomContainer = this.panZoomContainer as any;
+    if (panZoomContainer.dragging) {
+      let mousePos = event.data.global.clone();
+      panZoomContainer.x += mousePos.x - this.dragStartPosition.x;
+      panZoomContainer.y += mousePos.y - this.dragStartPosition.y; 
+      this.dragStartPosition = mousePos;
+    }
+  }
+
+  registerDraggable(dragHandler: IDragHandler) {
+    const dragHandlerAny : any = dragHandler as any;
+    if (dragHandler instanceof PIXI.Graphics) {
+      dragHandlerAny.interactive = true;
+      dragHandlerAny.buttonMode = true;
+
+      dragHandlerAny.on('pointerdown', (event: any) => {
+        if(this.dragTarget) return;
+        this.dragTarget = dragHandler;
+        console.dir(this.dragTarget);
+      });  
+    }
+  }
+
+  draggableDragStart(event : any) { 
+    const dragHandlerAny = this.dragTarget as any;
+    dragHandlerAny.onDragStart();
+    const globalPos = dragHandlerAny.toGlobal(new PIXI.Point());
+    const mousePos = event.data.global;
+
+    this.dragStartPosition = new PIXI.Point(mousePos.x, mousePos.y);
+  }
+  
+  draggableDragStop() {
+    const dragHandlerAny = this.dragTarget as any;
+    dragHandlerAny.onDragStop();
+    this.dragTarget = null;
+  }
+
+  draggableDragContinue(event : any) {
+    const dragHandlerAny = this.dragTarget as any;
+      dragHandlerAny.onDragMove(event);
+      const mousePos = event.data.global;
+      dragHandlerAny.x += (mousePos.x - this.dragStartPosition.x) / this.scaleFactor;
+      dragHandlerAny.y += (mousePos.y - this.dragStartPosition.y) / this.scaleFactor;
+      this.dragStartPosition = new PIXI.Point(mousePos.x, mousePos.y);
+  }
+
+  zoomToChild(child: PIXI.DisplayObject) { 
     const childAny = child as any;
     const cW = childAny.width;
     const cH = childAny.height;

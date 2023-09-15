@@ -3,6 +3,15 @@ import { AnimationManager } from "./managers/AnimationManager";
 import InteractionManager from "./managers/InteractionManager";
 
 export default class ZenithApp {
+  private static _instance: ZenithApp;
+
+  public static getInstance(): ZenithApp {
+    if (!ZenithApp._instance) {
+      throw "No ZenithApp instance found!";
+    }
+    return ZenithApp._instance;
+  }
+
   private _app: PIXI.Application;
   private _animationManager: AnimationManager;  
   private _interactionManager: InteractionManager;
@@ -24,6 +33,7 @@ export default class ZenithApp {
   }
 
   constructor(app: PIXI.Application) {
+    ZenithApp._instance = this;
     this._app = app;
     this._animationManager = new AnimationManager(this);
     this._interactionManager = new InteractionManager(this);

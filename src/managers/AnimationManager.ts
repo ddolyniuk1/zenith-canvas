@@ -1,8 +1,8 @@
 import ZenithApp from "../ZenithApp";
-import { IAnimateable } from "../base/interfaces/IAnimateable";
+import { IAnimatable } from "../base/interfaces/IAnimatable";
 
 export class AnimationManager {
-  private animateables: IAnimateable[] = [];
+  private animatables: IAnimatable[] = [];
 
   private _app: ZenithApp;
 
@@ -11,11 +11,11 @@ export class AnimationManager {
   }
   
 
-  public register(animateable: IAnimateable): void {
-    this.animateables.push(animateable);
+  public register(animatable: IAnimatable): void {
+    this.animatables.push(animatable);
   }
 
   public render(): void {
-    this.animateables.forEach(animateable => animateable.render());
+    this.animatables.forEach(animatable => animatable.render());
   }
 }
