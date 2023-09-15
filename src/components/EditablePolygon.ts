@@ -15,7 +15,7 @@ export class EditablePolygon extends PIXI.Graphics implements IDragHandler {
             const elementX = path[index];
             const elementY = path[index + 1];
             let point = new PIXI.Point(elementX, elementY);
-            let vertex = new EditablePolygonVertex(this, point);
+            let vertex = new EditablePolygonVertex(point, this);
             this.addChild(vertex);
             this._vertexes.push(vertex);
         }

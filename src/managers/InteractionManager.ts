@@ -52,6 +52,15 @@ export default class InteractionManager {
       }
     });
 
+    
+    stage.on("pointerupoutside", () => {
+      if(this.dragTarget) {
+        this.draggableDragStop();
+      } else {
+        this.canvasDragStop();
+      }
+    });
+
     stage.on("pointermove", (event: any) => {
       if(this.dragTarget) {
         this.draggableDragContinue(event);

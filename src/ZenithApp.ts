@@ -20,7 +20,7 @@ export default class ZenithApp {
   } 
   public animate(): void {
     this._app.ticker.add(() => {
-      this._animationManager.render();
+      this._animationManager.redraw();
     });
   }
 
@@ -37,6 +37,6 @@ export default class ZenithApp {
     this._app = app;
     this._animationManager = new AnimationManager(this);
     this._interactionManager = new InteractionManager(this);
-    this._app.renderer.resize(window.innerWidth, window.innerHeight); 
+    this._app.renderer.resize(document.documentElement.clientWidth, document.documentElement.clientHeight); 
   }
 }

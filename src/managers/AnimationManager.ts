@@ -15,7 +15,7 @@ export class AnimationManager {
     this.animatables.push(animatable);
   }
 
-  public render(): void {
+  public redraw(): void {
     this.animatables.forEach(animatable => animatable.render());
   }
 }

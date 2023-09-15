@@ -6,7 +6,14 @@ import ZenithApp from '../ZenithApp';
 
 export default class EditablePolygonVertex extends PIXI.Graphics implements IDragHandler {
     private _owner: EditablePolygon;
-    constructor(owner: EditablePolygon, position: PIXI.Point) {
+    public get owner(): EditablePolygon {
+        return this._owner;
+    }
+    public set owner(value: EditablePolygon) {
+        this._owner = value;
+    }
+    
+    constructor(position: PIXI.Point, owner: EditablePolygon | null = null) {
         super();
         this._owner = owner;
         this.position.x = position.x;
@@ -22,7 +29,9 @@ export default class EditablePolygonVertex extends PIXI.Graphics implements IDra
     onDragStop(): void {
     }
     onDragMove(event: any): void {
-        this._owner.redraw();
+        if(this._owner) { 
+            this._owner.redraw();
+        }
     }
 }
 
