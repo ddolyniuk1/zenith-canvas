@@ -1,4 +1,4 @@
-class EventSystem {
+export default class EventSystem {
   private listeners: { [event: string]: Function[] } = {};
 
   subscribe(event: string, listener: Function): void {

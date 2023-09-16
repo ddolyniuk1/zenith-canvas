@@ -4,13 +4,12 @@ import ColorUtil from "./utilities/ColorUtil";
  
 document.addEventListener('DOMContentLoaded', () => {  
     let containerElement = document.getElementById('pixi-container');  
-    let app = new PIXI.Application({ background: ColorUtil.convert('#312e2e'), backgroundAlpha: 1, width: document.documentElement.clientWidth, height: document.documentElement.clientHeight, antialias: true, resizeTo: containerElement});
-    let resizeCanvas = () => { 
-        app.renderer.resize(document.documentElement.clientWidth, document.documentElement.clientHeight);
-    };
+    let app = new PIXI.Application({
+        resizeTo: containerElement,
+        background: ColorUtil.convert('#312e2e'), backgroundAlpha: 1, antialias: true});
   
-    containerElement.appendChild(app.view as any);
-    //resizeCanvas();
-    //window.addEventListener('resize', resizeCanvas); 
+    containerElement.appendChild(app.view as any);  
+
+    (window as any).zenithApp = new ZenithApp(app);
 });
 

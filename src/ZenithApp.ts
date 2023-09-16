@@ -1,9 +1,12 @@
 import * as PIXI from "pixi.js";
 import { AnimationManager } from "./managers/AnimationManager";
-import InteractionManager from "./managers/InteractionManager";
+import InteractionManager from "./managers/InteractionManager"; 
+import ToolManager from "./managers/ToolManager";
+import PolygonTool from "./Tools/PolygonTool";
 
 export default class ZenithApp {
   private static _instance: ZenithApp;
+  private _toolManager: ToolManager;
 
   public static getInstance(): ZenithApp {
     if (!ZenithApp._instance) {
@@ -37,6 +40,16 @@ export default class ZenithApp {
     this._app = app;
     this._animationManager = new AnimationManager(this);
     this._interactionManager = new InteractionManager(this);
-    this._app.renderer.resize(document.documentElement.clientWidth, document.documentElement.clientHeight); 
+    this._toolManager = new ToolManager(this);
+    
+    // register tools
+    this._toolManager.registerTool('polygon', new PolygonTool());
+    this._toolManager.setActiveTool('polygon')
+    
+    app.ticker.add(delta => this.gameLoop(delta)); 
+  }
+
+  private gameLoop(delta) {
+     
   }
 }

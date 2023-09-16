@@ -1,24 +1,25 @@
 import ZenithApp from "../ZenithApp";
 import IToolInteraction from "../base/interfaces/IToolInteraction";
+import { Events as GlobalInteractionEvents } from "./InteractionManager";
 
-export default class ToolManager implements IToolInteraction {
-    OnDoubleClick(event: any) {
-        if(this._activeTool) {
-            this._activeTool.OnDoubleClick(event);
+export default class ToolManager {
+    onDoubleClick(event: any) {
+        if (this._activeTool) {
+            this._activeTool.onDoubleClick(event);
         }
     }
-    OnClick(event: any) {
-        if(this._activeTool) {
-            this._activeTool.OnClick(event);
+    onClick(event: any) {
+        if (this._activeTool) {
+            this._activeTool.onClick(event);
         }
     }
-    OnKeyPress(event: any) {
-        if(this._activeTool) {
-            this._activeTool.OnKeyPress(event);
+    onKeyPress(event: any) {
+        if (this._activeTool) {
+            this._activeTool.onKeyPress(event);
         }
     }
 
-    private _activeTool : IToolInteraction | null;
+    private _activeTool: IToolInteraction | null;
 
     private _tools: { [key: string]: IToolInteraction } = {};
 
@@ -27,18 +28,21 @@ export default class ToolManager implements IToolInteraction {
     }
 
     setActiveTool(key: string): void {
+        if (this._activeTool) {
+            this._activeTool.uninit();
+            this._activeTool = null;
+        }
         if (this._tools[key]) {
             this._activeTool = this._tools[key];
+            this._activeTool.init();
         } else {
             console.error(`Tool with key ${key} not found.`);
         }
     }
-    
-    constructor(app : ZenithApp) {
+
+    constructor(app: ZenithApp) {
         const stage = app.pixi.stage as any;
-        stage.on("dblclick", this.OnDoubleClick.bind(this));
-        stage.on("click", this.OnClick.bind(this));
-        stage.on("keyup", this.OnKeyPress.bind(this));
-        
+        app.interactionManager.on(GlobalInteractionEvents.DoubleClick, this.onDoubleClick.bind(this));
+        app.interactionManager.on(GlobalInteractionEvents.Click, this.onClick.bind(this)); 
     }
 }

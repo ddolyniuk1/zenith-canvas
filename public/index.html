@@ -4,13 +4,78 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PixiJS Pan and Zoom</title> 
+  <title>PixiJS Pan and Zoom</title>
   <script src="/public/js/zenith-canvas.min.js"></script>
+  <style>
+    body {
+      height: 100vh;
+      margin: 0;
+      overflow-y: hidden; /* Hide vertical scrollbar */
+      overflow-x: hidden; /* Hide horizontal scrollbar */
+    }
+    #pixi-container { 
+      min-height: 100%; 
+    } 
+    #button-container { 
+      display: block;
+    }
+    #app-container {
+      display: block;
+      min-height: 100%;
+    }
+    html,
+body {
+  height: 100%; 
+}
+
+.layout {
+  display: table;
+  width: 100%;
+  height: 100%;
+}
+
+.layout__row {
+  display: table-row;
+}
+
+.layout__cell {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.layout__cell--last {
+  height: 100%; 
+} 
+
+body {
+  text-align: center;
+}
+
+.layout__cell {
+  background: rgb(32, 32, 32);
+   
+}
+
+.layout__cell--last {
+  background: rgb(48, 48, 48);
+}
+
+  </style>
 </head>
 
 <body>
-  <div id="pixi-container" style="width: 500px; height: 400px;"></div>
-  <!-- <link rel="stylesheet" href="style.css" /> --> 
+  <div class="layout">
+    <div class="layout__row">
+      <div class="layout__cell">
+        <button>Create Polygon</button>
+      </div>
+    </div>
+    <div class="layout__row">
+      <div id="pixi-container" class="layout__cell layout__cell--last"> 
+      </div>
+    </div>
+  </div>  
+  <!-- <link rel="stylesheet" href="style.css" /> -->
 </body>
 
 </html>

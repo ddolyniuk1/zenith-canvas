@@ -1,17 +1,33 @@
 import ZenithApp from "../ZenithApp";
-import * as PIXI from "pixi.js";
-import { EditablePolygon } from "../components/EditablePolygon";
+import * as PIXI from "pixi.js"; 
 import IDragHandler from "../base/interfaces/IDragHandler";
+import EventSystem from "../utilities/EventSystem";
+
+export const Events = {
+  DoubleClick: "doubleclick",
+  Click: "click"
+};
 
 export default class InteractionManager {
   panZoomContainer: PIXI.Container<PIXI.DisplayObject>;
   dragStartPosition: PIXI.Point;
     scaleFactor: number = 1;
     dragTarget : IDragHandler | null = null;
+
+  private eventSystem : EventSystem = new EventSystem();
+ 
+  on(evt : string, listener: Function) {
+    this.eventSystem.subscribe(evt, listener);
+  }
+
+  off(evt : string, listener : Function) {
+    this.eventSystem.unsubscribe(evt, listener);
+  }
+
   constructor(private _app: ZenithApp) {
     this.initDefaultInteractionBehavior();
   }
-
+  
   async initDefaultInteractionBehavior() {
     const pixi = this._app.pixi;
     const stage: any = this._app.pixi.stage; 
@@ -24,19 +40,32 @@ export default class InteractionManager {
     stage.interactive = true;
 
     this.panZoomContainer = new PIXI.Container();
+    (this.panZoomContainer as any).sortableChildren = true;
     pixi.stage.addChild(this.panZoomContainer);
  
     const texture = await PIXI.Assets.load("/images/origin.jpg"); 
     const imageRectangle = new PIXI.Sprite(texture);
     imageRectangle.transform.pivot.set(0.5, 0.5);
-
+    imageRectangle.zIndex = 0;
     this.panZoomContainer.addChild(imageRectangle);
 
     const panZoomContainer: any = this.panZoomContainer;
     // Handle dragging to pan the stage
     stage.interactive = true;
-
+      
+    let clickCount = 0;
     stage.on("pointerdown", (event: any) => { 
+      clickCount++;
+      if(clickCount === 1) {
+        setTimeout(() => {
+          if(clickCount === 1) { 
+            this.eventSystem.emit(Events.Click, event);
+          } else {
+            this.eventSystem.emit(Events.DoubleClick, event);
+          }
+          clickCount = 0;
+        }, 300);
+      }
       if(this.dragTarget) {
         this.draggableDragStart(event);
       } else {
@@ -66,8 +95,7 @@ export default class InteractionManager {
         this.draggableDragContinue(event);
       } else { 
         this.canvasDragContinue(event);
-      }
-
+      } 
     }); 
 
     stage.on("wheel", (event: any) => { 
@@ -86,10 +114,7 @@ export default class InteractionManager {
       this.panZoomContainer.y -= newPos.y - event.data.global.y;
     });
 
-    this.zoomToChild(imageRectangle);
-
-    let e = new EditablePolygon();
-    this.panZoomContainer.addChild(e);
+    this.zoomToChild(imageRectangle); 
   }
 
   canvasDragStart(event: any) {
@@ -120,8 +145,7 @@ export default class InteractionManager {
 
       dragHandlerAny.on('pointerdown', (event: any) => {
         if(this.dragTarget) return;
-        this.dragTarget = dragHandler;
-        console.dir(this.dragTarget);
+        this.dragTarget = dragHandler; 
       });  
     }
   }
