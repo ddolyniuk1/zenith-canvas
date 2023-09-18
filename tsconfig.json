@@ -1,5 +1,7 @@
 {
     "compilerOptions": { 
+      "strictNullChecks": true,
+      "forceConsistentCasingInFileNames": true,
       "outDir": "./public/js",
       "sourceMap": true,
       "noImplicitAny": false,

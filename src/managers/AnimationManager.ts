@@ -1,21 +1,22 @@
-import ZenithApp from "../ZenithApp";
-import { IAnimatable } from "../base/interfaces/IAnimatable";
+import { type IAnimatable } from '../base/interfaces/IAnimatable'
+import BaseManager from './base/BaseManager'
 
-export class AnimationManager {
-  private animatables: IAnimatable[] = [];
+export class AnimationManager extends BaseManager {
+  // #region Properties (1)
 
-  private _app: ZenithApp;
+  private readonly animatables: IAnimatable[] = []
 
-  constructor(app: ZenithApp) {
-    this._app = app;
+  // #endregion Properties (1)
+
+  // #region Public Methods (2)
+
+  public redraw (): void {
+    this.animatables.forEach(animatable => { animatable.render() })
   }
-  
 
-  public register(animatable: IAnimatable): void {
-    this.animatables.push(animatable);
+  public register (animatable: IAnimatable): void {
+    this.animatables.push(animatable)
   }
 
-  public redraw(): void {
-    this.animatables.forEach(animatable => animatable.render());
-  }
+  // #endregion Public Methods (2)
 }

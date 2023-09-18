@@ -1,200 +1,212 @@
-import ZenithApp from "../ZenithApp";
-import * as PIXI from "pixi.js"; 
-import IDragHandler from "../base/interfaces/IDragHandler";
-import EventSystem from "../utilities/EventSystem";
+import * as PIXI from 'pixi.js'
+import type IDragHandler from '../base/interfaces/IDragHandler'
+import EventSystem from '../utilities/EventSystem'
+import BaseManager from './base/BaseManager'
+import type IContainer from '../base/interfaces/IContainer'
 
 export const Events = {
-  DoubleClick: "doubleclick",
-  Click: "click"
-};
+  DoubleClick: 'doubleclick',
+  Click: 'click'
+}
 
-export default class InteractionManager {
-  panZoomContainer: PIXI.Container<PIXI.DisplayObject>;
-  dragStartPosition: PIXI.Point;
-    scaleFactor: number = 1;
-    dragTarget : IDragHandler | null = null;
+export default class InteractionManager extends BaseManager {
+  // #region Properties (6)
 
-  private eventSystem : EventSystem = new EventSystem();
- 
-  on(evt : string, listener: Function) {
-    this.eventSystem.subscribe(evt, listener);
+  private readonly eventSystem: EventSystem = new EventSystem()
+
+  private _dragStartPosition: PIXI.Point
+  private _dragTarget: IDragHandler | null = null
+  private _draggingCanvas: boolean = false
+  private _panZoomContainer: PIXI.Container<PIXI.DisplayObject>
+  private _scaleFactor: number = 1
+
+  // #endregion Properties (6)
+
+  // #region Constructors (1)
+
+  constructor (container: IContainer) {
+    super(container)
+    void this.initDefaultInteractionBehavior()
   }
 
-  off(evt : string, listener : Function) {
-    this.eventSystem.unsubscribe(evt, listener);
+  // #endregion Constructors (1)
+
+  // #region Public Methods (11)
+
+  public canvasDragContinue (event: any): void {
+    const panZoomContainer = this._panZoomContainer as any
+    if (this._draggingCanvas) {
+      const mousePos = event.data.global.clone()
+      panZoomContainer.x += mousePos.x - this._dragStartPosition.x
+      panZoomContainer.y += mousePos.y - this._dragStartPosition.y
+      this._dragStartPosition = mousePos
+    }
   }
 
-  constructor(private _app: ZenithApp) {
-    this.initDefaultInteractionBehavior();
+  public canvasDragStart (event: any): void {
+    const evtPos = event.data.global.clone()
+    this._dragStartPosition = new PIXI.Point(evtPos.x, evtPos.y)
+    this._draggingCanvas = true
   }
-  
-  async initDefaultInteractionBehavior() {
-    const pixi = this._app.pixi;
-    const stage: any = this._app.pixi.stage; 
+
+  public canvasDragStop (): void {
+    this._draggingCanvas = false
+  }
+
+  public draggableDragContinue (event: any): void {
+    const dragHandlerAny = this._dragTarget as any
+    dragHandlerAny.onDragMove(event)
+    const mousePos = event.data.global
+    dragHandlerAny.x += (mousePos.x - this._dragStartPosition.x) / this._scaleFactor
+    dragHandlerAny.y += (mousePos.y - this._dragStartPosition.y) / this._scaleFactor
+    this._dragStartPosition = new PIXI.Point(mousePos.x, mousePos.y)
+  }
+
+  public draggableDragStart (event: any): void {
+    const dragHandlerAny = this._dragTarget as any
+    dragHandlerAny.onDragStart()
+    const mousePos = event.data.global
+
+    this._dragStartPosition = new PIXI.Point(mousePos.x, mousePos.y)
+  }
+
+  public draggableDragStop (): void {
+    const dragHandlerAny = this._dragTarget as any
+    dragHandlerAny.onDragStop()
+    this._dragTarget = null
+  }
+
+  public async initDefaultInteractionBehavior (): Promise<void> {
+    const pixi = this.container.pixi
+    const stage: any = this.container.pixi.stage
     stage.hitArea = new PIXI.Rectangle(
       0,
       0,
       pixi.renderer.width,
       pixi.renderer.height
-    );
-    stage.interactive = true;
+    )
+    stage.interactive = true
 
-    this.panZoomContainer = new PIXI.Container();
-    (this.panZoomContainer as any).sortableChildren = true;
-    pixi.stage.addChild(this.panZoomContainer);
- 
-    const texture = await PIXI.Assets.load("/images/origin.jpg"); 
-    const imageRectangle = new PIXI.Sprite(texture);
-    imageRectangle.transform.pivot.set(0.5, 0.5);
-    imageRectangle.zIndex = 0;
-    this.panZoomContainer.addChild(imageRectangle);
+    this._panZoomContainer = new PIXI.Container();
+    (this._panZoomContainer as any).sortableChildren = true
+    this.container.worldManager.stage = this._panZoomContainer
 
-    const panZoomContainer: any = this.panZoomContainer;
+    const texture = await PIXI.Assets.load('/images/origin.jpg')
+    const imageRectangle = new PIXI.Sprite(texture)
+    imageRectangle.transform.pivot.set(0.5, 0.5)
+    imageRectangle.zIndex = 0
+    this._panZoomContainer.addChild(imageRectangle)
     // Handle dragging to pan the stage
-    stage.interactive = true;
-      
-    let clickCount = 0;
-    stage.on("pointerdown", (event: any) => { 
-      clickCount++;
-      if(clickCount === 1) {
+    stage.interactive = true
+
+    let clickCount = 0
+    stage.on('pointerdown', (event: any) => {
+      clickCount++
+      if (clickCount === 1) {
         setTimeout(() => {
-          if(clickCount === 1) { 
-            this.eventSystem.emit(Events.Click, event);
+          if (clickCount === 1) {
+            this.eventSystem.emit(Events.Click, event)
           } else {
-            this.eventSystem.emit(Events.DoubleClick, event);
+            this.eventSystem.emit(Events.DoubleClick, event)
           }
-          clickCount = 0;
-        }, 300);
+          clickCount = 0
+        }, 300)
       }
-      if(this.dragTarget) {
-        this.draggableDragStart(event);
+      if (this._dragTarget != null) {
+        this.draggableDragStart(event)
       } else {
-        this.canvasDragStart(event);
-      } 
-    });
-
-    stage.on("pointerup", () => {
-      if(this.dragTarget) {
-        this.draggableDragStop();
-      } else {
-        this.canvasDragStop();
+        this.canvasDragStart(event)
       }
-    });
+    })
 
-    
-    stage.on("pointerupoutside", () => {
-      if(this.dragTarget) {
-        this.draggableDragStop();
+    stage.on('pointerup', () => {
+      if (this._dragTarget != null) {
+        this.draggableDragStop()
       } else {
-        this.canvasDragStop();
+        this.canvasDragStop()
       }
-    });
+    })
 
-    stage.on("pointermove", (event: any) => {
-      if(this.dragTarget) {
-        this.draggableDragContinue(event);
-      } else { 
-        this.canvasDragContinue(event);
-      } 
-    }); 
+    stage.on('pointerupoutside', () => {
+      if (this._dragTarget != null) {
+        this.draggableDragStop()
+      } else {
+        this.canvasDragStop()
+      }
+    })
 
-    stage.on("wheel", (event: any) => { 
-      this.scaleFactor *= event.deltaY < 0 ? 1.1 : 0.9;
+    stage.on('pointermove', (event: any) => {
+      if (this._dragTarget != null) {
+        this.draggableDragContinue(event)
+      } else {
+        this.canvasDragContinue(event)
+      }
+    })
+
+    stage.on('wheel', (event: any) => {
+      this._scaleFactor *= event.deltaY < 0 ? 1.1 : 0.9
       // Get the mouse position relative to the container
-      const mousePos = this.panZoomContainer.toLocal(event.data.global);
+      const mousePos = this._panZoomContainer.toLocal(event.data.global)
 
       // Scale the container
-      this.panZoomContainer.scale.set(this.scaleFactor);
+      this._panZoomContainer.scale.set(this._scaleFactor)
 
       // Calculate the new mouse position after scaling
-      const newPos = this.panZoomContainer.toGlobal(mousePos);
+      const newPos = this._panZoomContainer.toGlobal(mousePos)
 
       // Adjust the container position using the difference between the new and old mouse positions
-      this.panZoomContainer.x -= newPos.x - event.data.global.x;
-      this.panZoomContainer.y -= newPos.y - event.data.global.y;
-    });
+      this._panZoomContainer.x -= newPos.x - event.data.global.x
+      this._panZoomContainer.y -= newPos.y - event.data.global.y
+    })
 
-    this.zoomToChild(imageRectangle); 
-  }
-
-  canvasDragStart(event: any) {
-    const evtPos = event.data.global.clone();
-    this.dragStartPosition = new PIXI.Point(evtPos.x, evtPos.y);
-    (this.panZoomContainer as any).dragging = true;
-  }
-  
-  canvasDragStop() {
-    (this.panZoomContainer as any).dragging = false;
-  }
-  
-  canvasDragContinue(event : any) {
-    const panZoomContainer = this.panZoomContainer as any;
-    if (panZoomContainer.dragging) {
-      let mousePos = event.data.global.clone();
-      panZoomContainer.x += mousePos.x - this.dragStartPosition.x;
-      panZoomContainer.y += mousePos.y - this.dragStartPosition.y; 
-      this.dragStartPosition = mousePos;
-    }
+    this.zoomToChild(imageRectangle)
   }
 
-  registerDraggable(dragHandler: IDragHandler) {
-    const dragHandlerAny : any = dragHandler as any;
+  public off (evt: string, listener: (...args: any[]) => void): void {
+    this.eventSystem.unsubscribe(evt, listener)
+  }
+
+  public on (evt: string, listener: (...args: any[]) => void): () => void {
+    this.eventSystem.subscribe(evt, listener)
+    return () => { this.eventSystem.unsubscribe(evt, listener) }
+  }
+
+  public registerDraggable (dragHandler: IDragHandler): void {
+    const dragHandlerAny: any = dragHandler as any
     if (dragHandler instanceof PIXI.Graphics) {
-      dragHandlerAny.interactive = true;
-      dragHandlerAny.buttonMode = true;
+      dragHandlerAny.interactive = true
+      dragHandlerAny.buttonMode = true
 
       dragHandlerAny.on('pointerdown', (event: any) => {
-        if(this.dragTarget) return;
-        this.dragTarget = dragHandler; 
-      });  
+        if (this._dragTarget != null) return
+        this._dragTarget = dragHandler
+      })
     }
   }
 
-  draggableDragStart(event : any) { 
-    const dragHandlerAny = this.dragTarget as any;
-    dragHandlerAny.onDragStart();
-    const globalPos = dragHandlerAny.toGlobal(new PIXI.Point());
-    const mousePos = event.data.global;
-
-    this.dragStartPosition = new PIXI.Point(mousePos.x, mousePos.y);
-  }
-  
-  draggableDragStop() {
-    const dragHandlerAny = this.dragTarget as any;
-    dragHandlerAny.onDragStop();
-    this.dragTarget = null;
-  }
-
-  draggableDragContinue(event : any) {
-    const dragHandlerAny = this.dragTarget as any;
-      dragHandlerAny.onDragMove(event);
-      const mousePos = event.data.global;
-      dragHandlerAny.x += (mousePos.x - this.dragStartPosition.x) / this.scaleFactor;
-      dragHandlerAny.y += (mousePos.y - this.dragStartPosition.y) / this.scaleFactor;
-      this.dragStartPosition = new PIXI.Point(mousePos.x, mousePos.y);
-  }
-
-  zoomToChild(child: PIXI.DisplayObject) { 
-    const childAny = child as any;
-    const cW = childAny.width;
-    const cH = childAny.height;
+  public zoomToChild (child: PIXI.DisplayObject): void {
+    const childAny = child as any
+    const cW = childAny.width
+    const cH = childAny.height
     // Calculate the scale factor to accommodate the child's size versus the actual screen size
-    const scaleFactorX = this._app.pixi.renderer.width / cW;
-    const scaleFactorY = this._app.pixi.renderer.height / cH; 
-    this.scaleFactor = Math.min(scaleFactorX, scaleFactorY); 
+    const scaleFactorX = this.container.pixi.renderer.width / cW
+    const scaleFactorY = this.container.pixi.renderer.height / cH
+    this._scaleFactor = Math.min(scaleFactorX, scaleFactorY)
 
     // Scale the container to accommodate the child's size
-    this.panZoomContainer.scale.set(this.scaleFactor);
+    this._panZoomContainer.scale.set(this._scaleFactor)
 
-     // Get the child's global position
-     const childPos = child.toGlobal(new PIXI.Point());
+    // Get the child's global position
+    const childPos = child.toGlobal(new PIXI.Point())
 
-     // Calculate the difference between the child's position and the center of the container
-     const diffX = this._app.pixi.renderer.width / 2 - childPos.x - (cW / 2) * this.scaleFactor;
-     const diffY = this._app.pixi.renderer.height / 2 - childPos.y - (cH / 2) * this.scaleFactor;
- 
-     // Move the container to center the child
-     this.panZoomContainer.x = diffX;
-     this.panZoomContainer.y = diffY;
+    // Calculate the difference between the child's position and the center of the container
+    const diffX = this.container.pixi.renderer.width / 2 - childPos.x - (cW / 2) * this._scaleFactor
+    const diffY = this.container.pixi.renderer.height / 2 - childPos.y - (cH / 2) * this._scaleFactor
+
+    // Move the container to center the child
+    this._panZoomContainer.x = diffX
+    this._panZoomContainer.y = diffY
   }
+
+  // #endregion Public Methods (11)
 }

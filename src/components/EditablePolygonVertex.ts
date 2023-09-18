@@ -1,39 +1,56 @@
-
-import * as PIXI from 'pixi.js';
-import { EditablePolygon } from './EditablePolygon';
-import IDragHandler from '../base/interfaces/IDragHandler';
-import ZenithApp from '../ZenithApp';
+import * as PIXI from 'pixi.js'
+import { type EditablePolygon } from './EditablePolygon'
+import type IDragHandler from '../base/interfaces/IDragHandler'
+import ZenithApp from '../ZenithApp'
 
 export default class EditablePolygonVertex extends PIXI.Graphics implements IDragHandler {
-    private _owner: EditablePolygon;
-    public get owner(): EditablePolygon {
-        return this._owner;
+  // #region Properties (1)
+
+  private _owner: EditablePolygon | null
+
+  // #endregion Properties (1)
+
+  // #region Constructors (1)
+
+  constructor (position: PIXI.Point, owner: EditablePolygon | null = null) {
+    super()
+    this._owner = owner
+    this.position.x = position.x
+    this.position.y = position.y
+    this.lineStyle(2, 0xFF0000) // Red stroke
+    this.beginFill(0xFFD700) // Gold fill color
+    this.drawEllipse(0, 0, 25, 25) // Draw an ellipse
+    this.endFill()
+    ZenithApp.getInstance().interactionManager.registerDraggable(this)
+  }
+
+  // #endregion Constructors (1)
+
+  // #region Public Accessors (2)
+
+  public get owner (): EditablePolygon | null {
+    return this._owner
+  }
+
+  public set owner (value: EditablePolygon) {
+    this._owner = value
+  }
+
+  // #endregion Public Accessors (2)
+
+  // #region Public Methods (3)
+
+  public onDragMove (event: any): void {
+    if (this._owner != null) {
+      this._owner.redraw()
     }
-    public set owner(value: EditablePolygon) {
-        this._owner = value;
-    }
-    
-    constructor(position: PIXI.Point, owner: EditablePolygon | null = null) {
-        super();
-        this._owner = owner;
-        this.position.x = position.x;
-        this.position.y = position.y;
-        this.lineStyle(2, 0xFF0000); // Red stroke
-        this.beginFill(0xFFD700); // Gold fill color
-        this.drawEllipse(0, 0, 25, 25); // Draw an ellipse
-        this.endFill();
-        ZenithApp.getInstance().interactionManager.registerDraggable(this);
-    }
-    onDragStart(): void {
-    }
-    onDragStop(): void {
-    }
-    onDragMove(event: any): void {
-        if(this._owner) { 
-            this._owner.redraw();
-        }
-    }
+  }
+
+  public onDragStart (): void {
+  }
+
+  public onDragStop (): void {
+  }
+
+  // #endregion Public Methods (3)
 }
-
-
-

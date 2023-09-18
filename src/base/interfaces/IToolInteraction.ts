@@ -1,7 +1,7 @@
 export default interface IToolInteraction {
-    onDoubleClick(event : any);
-    onClick(event : any);
-    onKeyPress(event : any);
-    init();
-    uninit();
-} 
+  onDoubleClick: (event: any) => void
+  onClick: (event: any) => void
+  onKeyPress: (event: any) => void
+  init: () => void
+  unInit: () => void
+}

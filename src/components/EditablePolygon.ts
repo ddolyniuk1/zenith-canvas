@@ -1,38 +1,55 @@
-import * as PIXI from "pixi.js";
-import EditablePolygonVertex from "./EditablePolygonVertex";
-import ZenithApp from "../ZenithApp";
-import IDragHandler from "../base/interfaces/IDragHandler";
+import * as PIXI from 'pixi.js'
+import EditablePolygonVertex from './EditablePolygonVertex'
+import ZenithApp from '../ZenithApp'
+import type IDragHandler from '../base/interfaces/IDragHandler'
 
 export class EditablePolygon extends PIXI.Graphics implements IDragHandler {
-    private _points: PIXI.IPoint[]; 
-    private _vertexes: EditablePolygonVertex[] = [];
+  // #region Properties (2)
 
-    constructor() {
-        super(); 
-        ZenithApp.getInstance().interactionManager.registerDraggable(this);
-    }
-    onDragStart(): void {
-    }
-    onDragStop(): void {
-    }
-    onDragMove(event: any): void {
-    }
-    addVertex(x, y) {
-        let point = new PIXI.Point(x, y);
-        let vertex = new EditablePolygonVertex(point, this);
-        this.addChild(vertex);
-        this._vertexes.push(vertex);
-        this._points = this._vertexes.flatMap(t => t.position);
-        this.redraw(); 
-    }
-    public redraw(): void {
-        this.clear();
-        this.beginFill(0x5d0015);
- 
-        this.drawPolygon(
-            this._points
-        ); 
-        this.endFill(); 
-    }
- 
+  private readonly _vertexes: EditablePolygonVertex[] = []
+
+  private _points: PIXI.IPoint[]
+
+  // #endregion Properties (2)
+
+  // #region Constructors (1)
+
+  constructor () {
+    super()
+    ZenithApp.getInstance().interactionManager.registerDraggable(this)
+  }
+
+  // #endregion Constructors (1)
+
+  // #region Public Methods (5)
+
+  public addVertex (x: number, y: number): void {
+    const point = new PIXI.Point(x, y)
+    const vertex = new EditablePolygonVertex(point, this)
+    this.addChild(vertex)
+    this._vertexes.push(vertex)
+    this._points = this._vertexes.flatMap(t => t.position)
+    this.redraw()
+  }
+
+  public onDragMove (event: any): void {
+  }
+
+  public onDragStart (): void {
+  }
+
+  public onDragStop (): void {
+  }
+
+  public redraw (): void {
+    this.clear()
+    this.beginFill(0x5d0015)
+
+    this.drawPolygon(
+      this._points
+    )
+    this.endFill()
+  }
+
+  // #endregion Public Methods (5)
 }
