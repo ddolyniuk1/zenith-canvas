@@ -1,6 +1,6 @@
 import ZenithApp from '../ZenithApp'
 import type IToolInteraction from '../base/interfaces/IToolInteraction'
-import { EditablePolygon } from '../components/EditablePolygon'
+import { EditablePolygon } from '../elements/EditablePolygon'
 
 export default class PolygonTool implements IToolInteraction {
   // #region Properties (1)
@@ -25,10 +25,14 @@ export default class PolygonTool implements IToolInteraction {
     this._activePoly.addVertex(localPos.x, localPos.y)
   }
 
-  public onKeyPress (event: any): void {
+  public unInit (): void {
   }
 
-  public unInit (): void {
+  public onKeyDown (event: any): void {
+    console.dir(event)
+  }
+
+  public onKeyUp (event: any): void {
   }
 
   // #endregion Public Methods (5)

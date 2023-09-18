@@ -1,21 +1,20 @@
 import * as PIXI from 'pixi.js'
-import type IDragHandler from '../base/interfaces/IDragHandler'
-import EventSystem from '../utilities/EventSystem'
+import type IDraggable from '../base/interfaces/IDraggable'
 import BaseManager from './base/BaseManager'
 import type IContainer from '../base/interfaces/IContainer'
 
 export const Events = {
   DoubleClick: 'doubleclick',
-  Click: 'click'
+  Click: 'click',
+  KeyDown: 'keydown',
+  KeyUp: 'keyup'
 }
 
 export default class InteractionManager extends BaseManager {
   // #region Properties (6)
 
-  private readonly eventSystem: EventSystem = new EventSystem()
-
   private _dragStartPosition: PIXI.Point
-  private _dragTarget: IDragHandler | null = null
+  private _dragTarget: IDraggable | null = null
   private _draggingCanvas: boolean = false
   private _panZoomContainer: PIXI.Container<PIXI.DisplayObject>
   private _scaleFactor: number = 1
@@ -27,6 +26,13 @@ export default class InteractionManager extends BaseManager {
   constructor (container: IContainer) {
     super(container)
     void this.initDefaultInteractionBehavior()
+    document.addEventListener(Events.KeyDown, (event: KeyboardEvent) => {
+      this.emit(Events.KeyDown, event)
+    })
+
+    document.addEventListener(Events.KeyUp, (event: KeyboardEvent) => {
+      this.emit(Events.KeyUp, event)
+    })
   }
 
   // #endregion Constructors (1)
@@ -162,26 +168,24 @@ export default class InteractionManager extends BaseManager {
     this.zoomToChild(imageRectangle)
   }
 
-  public off (evt: string, listener: (...args: any[]) => void): void {
-    this.eventSystem.unsubscribe(evt, listener)
-  }
-
-  public on (evt: string, listener: (...args: any[]) => void): () => void {
-    this.eventSystem.subscribe(evt, listener)
-    return () => { this.eventSystem.unsubscribe(evt, listener) }
-  }
-
-  public registerDraggable (dragHandler: IDragHandler): void {
+  public registerDraggable (dragHandler: IDraggable): (() => void) | null {
     const dragHandlerAny: any = dragHandler as any
     if (dragHandler instanceof PIXI.Graphics) {
       dragHandlerAny.interactive = true
       dragHandlerAny.buttonMode = true
 
-      dragHandlerAny.on('pointerdown', (event: any) => {
+      const evt: (event: any) => void = (event: any) => {
         if (this._dragTarget != null) return
         this._dragTarget = dragHandler
-      })
+      }
+
+      dragHandlerAny.on('pointerdown', evt)
+
+      return () => {
+        dragHandlerAny.off('pointerdown', evt)
+      }
     }
+    return null
   }
 
   public zoomToChild (child: PIXI.DisplayObject): void {

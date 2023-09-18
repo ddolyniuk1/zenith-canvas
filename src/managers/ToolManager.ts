@@ -17,6 +17,8 @@ export default class ToolManager extends BaseManager {
     super(container)
     container.interactionManager.on(GlobalInteractionEvents.DoubleClick, this.onDoubleClick.bind(this))
     container.interactionManager.on(GlobalInteractionEvents.Click, this.onClick.bind(this))
+    container.interactionManager.on(GlobalInteractionEvents.KeyDown, this.onKeyDown.bind(this))
+    container.interactionManager.on(GlobalInteractionEvents.KeyUp, this.onKeyUp.bind(this))
   }
 
   // #endregion Constructors (1)
@@ -37,9 +39,15 @@ export default class ToolManager extends BaseManager {
     }
   }
 
-  public onKeyPress (event: any): void {
+  public onKeyDown (event: any): void {
     if (this._activeTool != null) {
-      this._activeTool.onKeyPress(event)
+      this._activeTool.onKeyDown(event)
+    }
+  }
+
+  public onKeyUp (event: any): void {
+    if (this._activeTool != null) {
+      this._activeTool.onKeyUp(event)
     }
   }
 

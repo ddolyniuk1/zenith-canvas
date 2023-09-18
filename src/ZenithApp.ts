@@ -18,6 +18,8 @@ export default class ZenithApp implements IContainer {
   constructor (app: PIXI.Application) {
     ZenithApp._instance = this
     this._pixi = app
+
+    // initialize managers
     this._worldManager = new WorldManager(this)
     this._animationManager = new AnimationManager(this)
     this._interactionManager = new InteractionManager(this)

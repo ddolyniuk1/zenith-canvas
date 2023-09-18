@@ -1,9 +1,9 @@
 import * as PIXI from 'pixi.js'
 import EditablePolygonVertex from './EditablePolygonVertex'
 import ZenithApp from '../ZenithApp'
-import type IDragHandler from '../base/interfaces/IDragHandler'
+import type IDraggable from '../base/interfaces/IDraggable'
 
-export class EditablePolygon extends PIXI.Graphics implements IDragHandler {
+export class EditablePolygon extends PIXI.Graphics implements IDraggable {
   // #region Properties (2)
 
   private readonly _vertexes: EditablePolygonVertex[] = []
