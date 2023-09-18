@@ -1,5 +1,5 @@
 import type * as PIXI from 'pixi.js'
-import { AnimationManager } from './managers/AnimationManager'
+import AnimationManager from './managers/AnimationManager'
 import InteractionManager from './managers/InteractionManager'
 import ToolManager from './managers/ToolManager'
 import PolygonTool from './Tools/PolygonTool'

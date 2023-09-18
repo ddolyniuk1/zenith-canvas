@@ -1,7 +1,7 @@
 import { type IAnimatable } from '../base/interfaces/IAnimatable'
 import BaseManager from './base/BaseManager'
 
-export class AnimationManager extends BaseManager {
+export default class AnimationManager extends BaseManager {
   // #region Properties (1)
 
   private readonly animatables: IAnimatable[] = []

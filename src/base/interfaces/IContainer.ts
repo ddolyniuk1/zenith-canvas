@@ -1,4 +1,4 @@
-import { type AnimationManager } from '../../managers/AnimationManager'
+import type AnimationManager from '../../managers/AnimationManager'
 import type InteractionManager from '../../managers/InteractionManager'
 import type ToolManager from '../../managers/ToolManager'
 import type WorldManager from '../../managers/WorldManager'
