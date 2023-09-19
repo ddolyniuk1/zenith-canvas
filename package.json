@@ -21,6 +21,7 @@
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
+    "@tweenjs/tween.js": "^21.0.0",
     "pixi.js": "^7.2.4",
     "ts-mixer": "^6.0.3",
     "uuid": "^9.0.1"

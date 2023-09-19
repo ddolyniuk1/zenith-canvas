@@ -4,14 +4,17 @@ import BaseManager from './base/BaseManager'
 import type GraphicsMixin from '../base/mixins/GraphicsMixin'
 
 export default class WorldManager extends BaseManager {
-  // #region Properties (3)
+  // #region Properties (5)
 
   private readonly _elementMap: Map<string, BaseElement> = new Map<string, BaseElement>()
+  private readonly _updateMap: Map<string, BaseElement> = new Map<string, BaseElement>()
 
   private _isStarted: boolean = false
   private _stage: PIXI.Container<PIXI.DisplayObject>
 
-  // #endregion Properties (3)
+  public time: number = 0
+
+  // #endregion Properties (5)
 
   // #region Public Accessors (4)
 
@@ -34,7 +37,7 @@ export default class WorldManager extends BaseManager {
 
   // #endregion Public Accessors (4)
 
-  // #region Public Methods (2)
+  // #region Public Methods (7)
 
   public addToWorld (object: BaseElement, parent: BaseElement | null = null): void {
     if (parent == null) {
@@ -49,6 +52,18 @@ export default class WorldManager extends BaseManager {
       object.onAwake()
       object.onStart()
     }
+  }
+
+  public awake (): void {
+    console.log('awake world')
+    this._elementMap.forEach(element => {
+      console.log(`${element.uuid} awake`)
+      element.onAwake()
+    })
+  }
+
+  public registerForUpdates (element: BaseElement): void {
+    this._updateMap.set(element.uuid, element)
   }
 
   public removeFromWorld (object: GraphicsMixin): boolean {
@@ -67,27 +82,35 @@ export default class WorldManager extends BaseManager {
       object.parent.removeChild(object)
     }
     const scriptObject = object as BaseElement
-    scriptObject.onDestroyed()
+    if (scriptObject != null) {
+      scriptObject.onDestroyed()
+      this.unregisterForUpdates(scriptObject)
+    }
 
     return removed
   }
 
-  public awake (): void {
-    console.log('awake world')
-    this._elementMap.forEach(element => {
-      console.log(`${element.uuid} awake`)
-      element.onAwake()
-    })
-  }
-
   public start (): void {
-    console.log('start world')
+    if (this.isStarted) {
+      throw new Error('Already started world!')
+    }
     this.isStarted = true
     this._elementMap.forEach(element => {
-      console.log(`${element.uuid} start`)
+      element.onAwake()
       element.onStart()
     })
   }
 
-  // #endregion Public Methods (2)
+  public unregisterForUpdates (element: BaseElement): void {
+    this._updateMap.delete(element.uuid)
+  }
+
+  public updateWorld (delta: number): void {
+    this._updateMap.forEach(element => {
+      this.time += delta
+      element.onUpdate(delta)
+    })
+  }
+
+  // #endregion Public Methods (7)
 }

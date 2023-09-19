@@ -13,3 +13,15 @@ export function darken (color: string, percentage: number): string {
 
   return '#' + r.toString(16).padStart(2, '0') + g.toString(16).padStart(2, '0') + b.toString(16).padStart(2, '0')
 }
+
+export function extractRGB (color: number): any {
+  const r = (color >> 16) & 0xFF
+  const g = (color >> 8) & 0xFF
+  const b = color & 0xFF
+
+  return { r, g, b }
+}
+
+export function convertRGBToInt ({ r, g, b }: { r: number, g: number, b: number }): number {
+  return (r << 16) + (g << 8) + b
+}

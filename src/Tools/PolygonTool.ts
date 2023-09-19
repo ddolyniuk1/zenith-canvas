@@ -28,7 +28,7 @@ export default class PolygonTool extends BaseTool {
   }
 
   public onKeyDown (event: any): void {
-
+    console.dir(event)
   }
 
   public onKeyUp (event: any): void {

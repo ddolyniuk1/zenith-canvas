@@ -1,18 +1,18 @@
 {
-    "compilerOptions": { 
-      "strictNullChecks": true,
-      "forceConsistentCasingInFileNames": true,
-      "outDir": "./public/js",
-      "sourceMap": true,
-      "noImplicitAny": false,
-      "module": "commonjs", 
-      "moduleResolution": "Node",
-      "target": "es6",
-      "jsx": "react",
-      "allowJs": true,
-      "lib": ["es2017", "dom"], 
-    },
-    "include": [
-      "./src/**/*"
-    ]
+  "compilerOptions": { 
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./public/js",
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "module": "esnext", 
+    "moduleResolution": "Node",
+    "target": "es6",
+    "jsx": "react",
+    "allowJs": true,
+    "lib": ["es2017", "dom"], 
+  },
+  "include": [
+    "./src/**/*"
+  ]
 }

@@ -46,7 +46,11 @@ export default class ToolManager extends BaseManager {
 
   public onKeyUp (event: any): void {
     if (this._activeTool != null) {
-      this._activeTool.onKeyUp(event)
+      if (event.key === 'Enter' || event.key === 'Escape') {
+        this._activeTool = null
+      } else {
+        this._activeTool.onKeyUp(event)
+      }
     }
   }
 
@@ -63,7 +67,7 @@ export default class ToolManager extends BaseManager {
       this._activeTool = this._tools[key]
       this._activeTool.init()
     } else {
-      console.error(`Tool with key ${key} not found.`)
+      throw new Error(`Tool with key ${key} not found.`)
     }
   }
 

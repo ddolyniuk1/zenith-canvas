@@ -27,7 +27,6 @@ export default class ZenithApp implements IContainer {
 
     // register tools
     this._toolManager.registerTool('polygon', new PolygonTool())
-    this._toolManager.setActiveTool('polygon')
 
     this._worldManager.awake()
     this._worldManager.start()
@@ -62,6 +61,6 @@ export default class ZenithApp implements IContainer {
   }
 
   private gameLoop (delta: number): void {
-
+    this.worldManager.updateWorld(delta)
   }
 }

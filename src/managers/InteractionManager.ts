@@ -179,7 +179,6 @@ export default class InteractionManager extends BaseManager {
         this._dragTarget = dragHandler
       }
       (element.graphics as any).on('pointerdown', evt)
-
       return () => {
         (element.graphics as any).off('pointerdown', evt)
       }

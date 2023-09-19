@@ -6,13 +6,29 @@ import GraphicsMixin from '../../base/mixins/GraphicsMixin'
 import type IDraggable from '../../base/interfaces/IDraggable'
 
 export default abstract class BaseElement extends Mixin(ContainerResolverMixin, EventEmitterMixin, GraphicsMixin) implements IScriptObject, IDraggable {
-  // #region Properties (1)
+  // #region Properties (2)
 
+  private _canUpdate: boolean = false
   private _isSelected: boolean
 
-  // #endregion Properties (1)
+  // #endregion Properties (2)
 
-  // #region Public Accessors (2)
+  // #region Public Accessors (4)
+
+  public get canUpdate (): boolean {
+    return this._canUpdate
+  }
+
+  public set canUpdate (value: boolean) {
+    if (this._canUpdate === value) return
+    if (this._canUpdate) {
+      this.container.worldManager.unregisterForUpdates(this)
+    }
+    this._canUpdate = value
+    if (value) {
+      this.container.worldManager.registerForUpdates(this)
+    }
+  }
 
   public get isSelected (): boolean {
     return this._isSelected
@@ -22,7 +38,7 @@ export default abstract class BaseElement extends Mixin(ContainerResolverMixin, 
     this._isSelected = value
   }
 
-  // #endregion Public Accessors (2)
+  // #endregion Public Accessors (4)
 
   // #region Public Methods (3)
 
@@ -39,7 +55,7 @@ export default abstract class BaseElement extends Mixin(ContainerResolverMixin, 
   public abstract onAwake (): void
   public abstract onDestroyed (): void
   public abstract onStart (): void
-  public abstract onUpdate (): void
+  public abstract onUpdate (delta: number): void
 
   // #endregion Public Abstract Methods (4)
 }
