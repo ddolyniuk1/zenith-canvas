@@ -1,8 +1,7 @@
 import ContainerResolverMixin from '../../base/mixins/ContainerResolverMixin'
 import EventEmitterMixin from '../../base/mixins/EventEmitterMixin'
+import { Mixin } from 'ts-mixer'
 
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
-class BaseManagerInternal {
+export default class BaseManager extends Mixin(ContainerResolverMixin, EventEmitterMixin) {
+
 }
-
-export default class BaseManager extends ContainerResolverMixin(EventEmitterMixin(BaseManagerInternal)) {}

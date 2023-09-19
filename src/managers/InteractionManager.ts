@@ -1,7 +1,6 @@
 import * as PIXI from 'pixi.js'
-import type IDraggable from '../base/interfaces/IDraggable'
 import BaseManager from './base/BaseManager'
-import type IContainer from '../base/interfaces/IContainer'
+import type BaseElement from '../elements/base/BaseElement'
 
 export const Events = {
   DoubleClick: 'doubleclick',
@@ -14,7 +13,7 @@ export default class InteractionManager extends BaseManager {
   // #region Properties (6)
 
   private _dragStartPosition: PIXI.Point
-  private _dragTarget: IDraggable | null = null
+  private _dragTarget: BaseElement | null = null
   private _draggingCanvas: boolean = false
   private _panZoomContainer: PIXI.Container<PIXI.DisplayObject>
   private _scaleFactor: number = 1
@@ -23,8 +22,8 @@ export default class InteractionManager extends BaseManager {
 
   // #region Constructors (1)
 
-  constructor (container: IContainer) {
-    super(container)
+  constructor () {
+    super()
     void this.initDefaultInteractionBehavior()
     document.addEventListener(Events.KeyDown, (event: KeyboardEvent) => {
       this.emit(Events.KeyDown, event)
@@ -60,8 +59,8 @@ export default class InteractionManager extends BaseManager {
   }
 
   public draggableDragContinue (event: any): void {
-    const dragHandlerAny = this._dragTarget as any
-    dragHandlerAny.onDragMove(event)
+    const dragHandlerAny = this._dragTarget?.graphics as any
+    this._dragTarget?.onDragMove(event)
     const mousePos = event.data.global
     dragHandlerAny.x += (mousePos.x - this._dragStartPosition.x) / this._scaleFactor
     dragHandlerAny.y += (mousePos.y - this._dragStartPosition.y) / this._scaleFactor
@@ -69,16 +68,14 @@ export default class InteractionManager extends BaseManager {
   }
 
   public draggableDragStart (event: any): void {
-    const dragHandlerAny = this._dragTarget as any
-    dragHandlerAny.onDragStart()
+    this._dragTarget?.onDragStart()
     const mousePos = event.data.global
 
     this._dragStartPosition = new PIXI.Point(mousePos.x, mousePos.y)
   }
 
   public draggableDragStop (): void {
-    const dragHandlerAny = this._dragTarget as any
-    dragHandlerAny.onDragStop()
+    this._dragTarget?.onDragStop()
     this._dragTarget = null
   }
 
@@ -111,9 +108,9 @@ export default class InteractionManager extends BaseManager {
       if (clickCount === 1) {
         setTimeout(() => {
           if (clickCount === 1) {
-            this.eventSystem.emit(Events.Click, event)
+            this.emit(Events.Click, event)
           } else {
-            this.eventSystem.emit(Events.DoubleClick, event)
+            this.emit(Events.DoubleClick, event)
           }
           clickCount = 0
         }, 300)
@@ -168,21 +165,23 @@ export default class InteractionManager extends BaseManager {
     this.zoomToChild(imageRectangle)
   }
 
-  public registerDraggable (dragHandler: IDraggable): (() => void) | null {
-    const dragHandlerAny: any = dragHandler as any
-    if (dragHandler instanceof PIXI.Graphics) {
-      dragHandlerAny.interactive = true
-      dragHandlerAny.buttonMode = true
+  public registerDraggable (dragHandler: BaseElement): (() => void) | null {
+    const element: BaseElement | null = dragHandler as unknown as BaseElement ?? null
+    if (element != null) {
+      console.log(`register draggable ${element.uuid}`);
+      (element.graphics as any).interactive = true;
+      (element.graphics as any).buttonMode = true
+      console.dir(element.graphics)
 
       const evt: (event: any) => void = (event: any) => {
         if (this._dragTarget != null) return
+        console.log(`evt draggable ${element.uuid}`)
         this._dragTarget = dragHandler
       }
-
-      dragHandlerAny.on('pointerdown', evt)
+      (element.graphics as any).on('pointerdown', evt)
 
       return () => {
-        dragHandlerAny.off('pointerdown', evt)
+        (element.graphics as any).off('pointerdown', evt)
       }
     }
     return null

@@ -1,35 +1,37 @@
 import * as PIXI from 'pixi.js'
 import EditablePolygonVertex from './EditablePolygonVertex'
-import ZenithApp from '../ZenithApp'
-import type IDraggable from '../base/interfaces/IDraggable'
+import BaseElement from './base/BaseElement'
 
-export class EditablePolygon extends PIXI.Graphics implements IDraggable {
-  // #region Properties (2)
+export class EditablePolygon extends BaseElement {
+  // #region Properties (3)
 
   private readonly _vertexes: EditablePolygonVertex[] = []
 
   private _points: PIXI.IPoint[]
 
-  // #endregion Properties (2)
-
-  // #region Constructors (1)
-
-  constructor () {
-    super()
-    ZenithApp.getInstance().interactionManager.registerDraggable(this)
+  public onStart = (): void => {
+    this.container?.interactionManager.registerDraggable(this)
   }
 
-  // #endregion Constructors (1)
+  // #endregion Properties (3)
 
-  // #region Public Methods (5)
+  // #region Public Methods (8)
 
   public addVertex (x: number, y: number): void {
     const point = new PIXI.Point(x, y)
     const vertex = new EditablePolygonVertex(point, this)
-    this.addChild(vertex)
+    this.container?.worldManager.addToWorld(vertex, this)
     this._vertexes.push(vertex)
-    this._points = this._vertexes.flatMap(t => t.position)
+    this._points = this._vertexes.flatMap(t => t.graphics.position)
     this.redraw()
+  }
+
+  public onAwake (): void {
+
+  }
+
+  public onDestroyed (): void {
+
   }
 
   public onDragMove (event: any): void {
@@ -41,15 +43,18 @@ export class EditablePolygon extends PIXI.Graphics implements IDraggable {
   public onDragStop (): void {
   }
 
-  public redraw (): void {
-    this.clear()
-    this.beginFill(0x5d0015)
+  public onUpdate (): void {
 
-    this.drawPolygon(
-      this._points
-    )
-    this.endFill()
   }
 
-  // #endregion Public Methods (5)
+  public redraw (): void {
+    this.graphics.clear()
+    this.graphics.beginFill(0x5d0015)
+    this.graphics.drawPolygon(
+      this._points
+    )
+    this.graphics.endFill()
+  }
+
+  // #endregion Public Methods (8)
 }

@@ -1,8 +1,7 @@
-import ZenithApp from '../ZenithApp'
-import type IToolInteraction from '../base/interfaces/IToolInteraction'
 import { EditablePolygon } from '../elements/EditablePolygon'
+import BaseTool from './base/BaseTool'
 
-export default class PolygonTool implements IToolInteraction {
+export default class PolygonTool extends BaseTool {
   // #region Properties (1)
 
   private _activePoly: EditablePolygon
@@ -13,15 +12,15 @@ export default class PolygonTool implements IToolInteraction {
 
   public init (): void {
     this._activePoly = new EditablePolygon()
-    ZenithApp.getInstance().worldManager.stage.addChild(this._activePoly)
-    this._activePoly.zIndex = 999
+    this.container.worldManager.addToWorld(this._activePoly)
+    this._activePoly.graphics.zIndex = 999
   }
 
   public onClick (event: any): void {
   }
 
   public onDoubleClick (event: any): void {
-    const localPos = this._activePoly.toLocal(event.data.global)
+    const localPos = this._activePoly.graphics.toLocal(event.data.global)
     this._activePoly.addVertex(localPos.x, localPos.y)
   }
 
@@ -29,7 +28,7 @@ export default class PolygonTool implements IToolInteraction {
   }
 
   public onKeyDown (event: any): void {
-    console.dir(event)
+
   }
 
   public onKeyUp (event: any): void {

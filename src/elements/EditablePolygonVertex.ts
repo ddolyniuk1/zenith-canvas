@@ -1,27 +1,21 @@
-import * as PIXI from 'pixi.js'
+import type { Point } from 'pixi.js'
 import { type EditablePolygon } from './EditablePolygon'
-import type IDraggable from '../base/interfaces/IDraggable'
-import ZenithApp from '../ZenithApp'
+import BaseElement from './base/BaseElement'
 
-export default class EditablePolygonVertex extends PIXI.Graphics implements IDraggable {
+export default class EditablePolygonVertex extends BaseElement {
   // #region Properties (1)
 
   private _owner: EditablePolygon | null
+  private readonly _initialPosition: Point
 
   // #endregion Properties (1)
 
   // #region Constructors (1)
 
-  constructor (position: PIXI.Point, owner: EditablePolygon | null = null) {
+  constructor (position: Point, owner: EditablePolygon | null = null) {
     super()
     this._owner = owner
-    this.position.x = position.x
-    this.position.y = position.y
-    this.lineStyle(2, 0xFF0000) // Red stroke
-    this.beginFill(0xFFD700) // Gold fill color
-    this.drawEllipse(0, 0, 25, 25) // Draw an ellipse
-    this.endFill()
-    ZenithApp.getInstance().interactionManager.registerDraggable(this)
+    this._initialPosition = position
   }
 
   // #endregion Constructors (1)
@@ -38,7 +32,15 @@ export default class EditablePolygonVertex extends PIXI.Graphics implements IDra
 
   // #endregion Public Accessors (2)
 
-  // #region Public Methods (3)
+  // #region Public Methods (7)
+
+  public onAwake (): void {
+
+  }
+
+  public onDestroyed (): void {
+
+  }
 
   public onDragMove (event: any): void {
     if (this._owner != null) {
@@ -46,11 +48,19 @@ export default class EditablePolygonVertex extends PIXI.Graphics implements IDra
     }
   }
 
-  public onDragStart (): void {
+  public onStart (): void {
+    this.container.interactionManager.registerDraggable(this)
+    this.graphics.position.x = this._initialPosition.x
+    this.graphics.position.y = this._initialPosition.y
+    this.graphics.lineStyle(2, 0xFF0000) // Red stroke
+    this.graphics.beginFill(0xFFD700) // Gold fill color
+    this.graphics.drawEllipse(0, 0, 25, 25) // Draw an ellipse
+    this.graphics.endFill()
   }
 
-  public onDragStop (): void {
+  public onUpdate (): void {
+
   }
 
-  // #endregion Public Methods (3)
+  // #endregion Public Methods (7)
 }

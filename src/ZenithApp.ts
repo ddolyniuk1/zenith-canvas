@@ -20,15 +20,17 @@ export default class ZenithApp implements IContainer {
     this._pixi = app
 
     // initialize managers
-    this._worldManager = new WorldManager(this)
-    this._animationManager = new AnimationManager(this)
-    this._interactionManager = new InteractionManager(this)
-    this._toolManager = new ToolManager(this)
+    this._worldManager = new WorldManager()
+    this._animationManager = new AnimationManager()
+    this._interactionManager = new InteractionManager()
+    this._toolManager = new ToolManager()
 
     // register tools
     this._toolManager.registerTool('polygon', new PolygonTool())
     this._toolManager.setActiveTool('polygon')
 
+    this._worldManager.awake()
+    this._worldManager.start()
     app.ticker.add((delta) => { this.gameLoop(delta) })
   }
 

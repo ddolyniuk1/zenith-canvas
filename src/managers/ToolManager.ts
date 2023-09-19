@@ -1,4 +1,3 @@
-import type IContainer from '../base/interfaces/IContainer'
 import type IToolInteraction from '../base/interfaces/IToolInteraction'
 import { Events as GlobalInteractionEvents } from './InteractionManager'
 import BaseManager from './base/BaseManager'
@@ -13,12 +12,12 @@ export default class ToolManager extends BaseManager {
 
   // #region Constructors (1)
 
-  constructor (container: IContainer) {
-    super(container)
-    container.interactionManager.on(GlobalInteractionEvents.DoubleClick, this.onDoubleClick.bind(this))
-    container.interactionManager.on(GlobalInteractionEvents.Click, this.onClick.bind(this))
-    container.interactionManager.on(GlobalInteractionEvents.KeyDown, this.onKeyDown.bind(this))
-    container.interactionManager.on(GlobalInteractionEvents.KeyUp, this.onKeyUp.bind(this))
+  constructor () {
+    super()
+    this.container.interactionManager.on(GlobalInteractionEvents.DoubleClick, this.onDoubleClick.bind(this))
+    this.container.interactionManager.on(GlobalInteractionEvents.Click, this.onClick.bind(this))
+    this.container.interactionManager.on(GlobalInteractionEvents.KeyDown, this.onKeyDown.bind(this))
+    this.container.interactionManager.on(GlobalInteractionEvents.KeyUp, this.onKeyUp.bind(this))
   }
 
   // #endregion Constructors (1)
