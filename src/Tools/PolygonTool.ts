@@ -11,6 +11,7 @@ export default class PolygonTool extends BaseTool {
   // #region Public Methods (5)
 
   public init (): void {
+    this.container.selectionManager.deselectAll()
     this._activePoly = new EditablePolygon()
     this.container.worldManager.addToWorld(this._activePoly)
     this._activePoly.graphics.zIndex = 999

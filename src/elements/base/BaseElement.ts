@@ -35,7 +35,10 @@ export default abstract class BaseElement extends Mixin(ContainerResolverMixin, 
   }
 
   public set isSelected (value: boolean) {
+    if (this._isSelected === value) return
+    if (this._isSelected) this.onDeselected()
     this._isSelected = value
+    if (this._isSelected) this.onSelected()
   }
 
   // #endregion Public Accessors (4)
@@ -52,6 +55,8 @@ export default abstract class BaseElement extends Mixin(ContainerResolverMixin, 
 
   // #region Public Abstract Methods (4)
 
+  public abstract onSelected (): void
+  public abstract onDeselected (): void
   public abstract onAwake (): void
   public abstract onDestroyed (): void
   public abstract onStart (): void

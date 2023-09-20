@@ -3,12 +3,13 @@ import { type EditablePolygon } from './EditablePolygon'
 import BaseElement from './base/BaseElement'
 
 export default class EditablePolygonVertex extends BaseElement {
-  // #region Properties (1)
+  // #region Properties (2)
 
-  private _owner: EditablePolygon | null
   private readonly _initialPosition: Point
 
-  // #endregion Properties (1)
+  private _owner: EditablePolygon | null
+
+  // #endregion Properties (2)
 
   // #region Constructors (1)
 
@@ -35,11 +36,12 @@ export default class EditablePolygonVertex extends BaseElement {
   // #region Public Methods (7)
 
   public onAwake (): void {
+  }
 
+  public onDeselected (): void {
   }
 
   public onDestroyed (): void {
-
   }
 
   public onDragMove (event: any): void {
@@ -48,18 +50,24 @@ export default class EditablePolygonVertex extends BaseElement {
     }
   }
 
+  public onSelected (): void {
+  }
+
   public onStart (): void {
-    this.container.interactionManager.registerDraggable(this)
+    this.container.interactionManager.registerInteractions(this)
     this.graphics.position.x = this._initialPosition.x
     this.graphics.position.y = this._initialPosition.y
-    this.graphics.lineStyle(2, 0xFF0000) // Red stroke
+    if (this.isSelected) {
+      this.graphics.lineStyle(2, 0xFFFF00) // Red stroke
+    } else {
+      this.graphics.lineStyle(2, 0xFF0000) // Red stroke
+    }
     this.graphics.beginFill(0xFFD700) // Gold fill color
     this.graphics.drawEllipse(0, 0, 25, 25) // Draw an ellipse
     this.graphics.endFill()
   }
 
   public onUpdate (): void {
-
   }
 
   // #endregion Public Methods (7)

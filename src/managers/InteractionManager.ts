@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js'
 import BaseManager from './base/BaseManager'
 import type BaseElement from '../elements/base/BaseElement'
 
-export const Events = {
+export const InteractionEventNames = {
   DoubleClick: 'doubleclick',
   Click: 'click',
   KeyDown: 'keydown',
@@ -14,9 +14,12 @@ export default class InteractionManager extends BaseManager {
 
   private _dragStartPosition: PIXI.Point
   private _dragTarget: BaseElement | null = null
+  private _lastClicked: BaseElement | null = null
   private _draggingCanvas: boolean = false
+  private _initialClickEvent: any
   private _panZoomContainer: PIXI.Container<PIXI.DisplayObject>
   private _scaleFactor: number = 1
+  private _pointerDownTarget: BaseElement | null
 
   // #endregion Properties (6)
 
@@ -25,18 +28,30 @@ export default class InteractionManager extends BaseManager {
   constructor () {
     super()
     void this.initDefaultInteractionBehavior()
-    document.addEventListener(Events.KeyDown, (event: KeyboardEvent) => {
-      this.emit(Events.KeyDown, event)
+    document.addEventListener(InteractionEventNames.KeyDown, (event: KeyboardEvent) => {
+      this.emit(InteractionEventNames.KeyDown, event)
     })
 
-    document.addEventListener(Events.KeyUp, (event: KeyboardEvent) => {
-      this.emit(Events.KeyUp, event)
+    document.addEventListener(InteractionEventNames.KeyUp, (event: KeyboardEvent) => {
+      this.emit(InteractionEventNames.KeyUp, event)
     })
   }
 
   // #endregion Constructors (1)
 
-  // #region Public Methods (11)
+  // #region Public Accessors (2)
+
+  public get lastClicked (): BaseElement | null {
+    return this._lastClicked
+  }
+
+  public set lastClicked (value: BaseElement | null) {
+    this._lastClicked = value
+  }
+
+  // #endregion Public Accessors (2)
+
+  // #region Public Methods (9)
 
   public canvasDragContinue (event: any): void {
     const panZoomContainer = this._panZoomContainer as any
@@ -106,13 +121,15 @@ export default class InteractionManager extends BaseManager {
     stage.on('pointerdown', (event: any) => {
       clickCount++
       if (clickCount === 1) {
+        this._initialClickEvent = event
         setTimeout(() => {
           if (clickCount === 1) {
-            this.emit(Events.Click, event)
+            this.emit(InteractionEventNames.Click, this._initialClickEvent)
           } else {
-            this.emit(Events.DoubleClick, event)
+            this.emit(InteractionEventNames.DoubleClick, this._initialClickEvent)
           }
           clickCount = 0
+          this.lastClicked = null
         }, 300)
       }
       if (this._dragTarget != null) {
@@ -123,6 +140,7 @@ export default class InteractionManager extends BaseManager {
     })
 
     stage.on('pointerup', () => {
+      console.log('pointer up null')
       if (this._dragTarget != null) {
         this.draggableDragStop()
       } else {
@@ -165,22 +183,32 @@ export default class InteractionManager extends BaseManager {
     this.zoomToChild(imageRectangle)
   }
 
-  public registerDraggable (dragHandler: BaseElement): (() => void) | null {
-    const element: BaseElement | null = dragHandler as unknown as BaseElement ?? null
+  public registerInteractions (interactive: BaseElement): (() => void) | null {
+    const element: BaseElement | null = interactive as unknown as BaseElement ?? null
     if (element != null) {
-      console.log(`register draggable ${element.uuid}`);
-      (element.graphics as any).interactive = true;
-      (element.graphics as any).buttonMode = true
-      console.dir(element.graphics)
+      const g = element.graphics as any
+      g.interactive = true
+      g.buttonMode = true
 
-      const evt: (event: any) => void = (event: any) => {
+      const pointerDownHandler: (event: any) => void = (event: any) => {
+        if (this._pointerDownTarget == null) {
+          this._pointerDownTarget = element
+        }
         if (this._dragTarget != null) return
-        console.log(`evt draggable ${element.uuid}`)
-        this._dragTarget = dragHandler
+        this._dragTarget = interactive
       }
-      (element.graphics as any).on('pointerdown', evt)
+
+      const pointerUpHandler: (event: any) => void = (event: any) => {
+        if (this._pointerDownTarget === element) {
+          this.lastClicked = element
+          this._pointerDownTarget = null
+        }
+      }
+      g.on('pointerdown', pointerDownHandler)
+      g.on('pointerup', pointerUpHandler)
       return () => {
-        (element.graphics as any).off('pointerdown', evt)
+        g.off('pointerdown', pointerDownHandler)
+        g.off('pointerup', pointerUpHandler)
       }
     }
     return null
@@ -210,5 +238,5 @@ export default class InteractionManager extends BaseManager {
     this._panZoomContainer.y = diffY
   }
 
-  // #endregion Public Methods (11)
+  // #endregion Public Methods (9)
 }

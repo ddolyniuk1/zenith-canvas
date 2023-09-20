@@ -1,41 +1,23 @@
 import * as PIXI from 'pixi.js'
 import EditablePolygonVertex from './EditablePolygonVertex'
 import BaseElement from './base/BaseElement'
-import TWEEN from '@tweenjs/tween.js'
-import { convertRGBToInt, extractRGB } from '../utilities/ColorUtil'
 
 export class EditablePolygon extends BaseElement {
-  // #region Properties (6)
+  // #region Properties (5)
 
   private readonly _vertexes: EditablePolygonVertex[] = []
-  private readonly isAlarmed: boolean = true
 
   private _fillColor: number = 0x000000
   private _points: PIXI.IPoint[]
-  private _tween: any | null = null
+  private _stroke: number | null = null
 
   public onStart = (): void => {
-    this.container?.interactionManager.registerDraggable(this)
+    this.container?.interactionManager.registerInteractions(this)
     this.canUpdate = true
     this.fillColor = 0x5d0015
-
-    if (this.isAlarmed) {
-      console.dir(extractRGB(0x110000))
-      const val = { r: 17, g: 0, b: 0 }
-      this.tween = new TWEEN.Tween(val, false) // Create a new tween that modifies 'coords'.
-        .to({ r: 255, g: 0, b: 0 }, 200) // Move to (300, 200) in 1 second.
-        .easing(TWEEN.Easing.Quadratic.InOut)
-        .onUpdate(e => {
-          console.dir(e)
-          this.fillColor = Math.round(convertRGBToInt(e))
-        })
-        .repeat(Infinity)
-        .yoyo(true)
-        .start()
-    }
   }
 
-  // #endregion Properties (6)
+  // #endregion Properties (5)
 
   // #region Public Accessors (4)
 
@@ -49,24 +31,19 @@ export class EditablePolygon extends BaseElement {
     this.redraw()
   }
 
-  public get tween (): any {
-    return this._tween
+  public get stroke (): number | null {
+    return this._stroke
   }
 
-  public set tween (value: any) {
-    if (this._tween != null) {
-      this._tween.stop()
-      delete this._tween
-    }
-    this._tween = value
-    if (this._tween != null) {
-      this._tween.start()
-    }
+  public set stroke (value: number | null) {
+    if (this._stroke === value) return
+    this._stroke = value
+    this.redraw()
   }
 
   // #endregion Public Accessors (4)
 
-  // #region Public Methods (8)
+  // #region Public Methods (10)
 
   public addVertex (x: number, y: number): void {
     const point = new PIXI.Point(x, y)
@@ -78,6 +55,10 @@ export class EditablePolygon extends BaseElement {
   }
 
   public onAwake (): void {
+  }
+
+  public onDeselected (): void {
+    this.stroke = null
   }
 
   public onDestroyed (): void {
@@ -92,15 +73,19 @@ export class EditablePolygon extends BaseElement {
   public onDragStop (): void {
   }
 
+  public onSelected (): void {
+    this.stroke = 0xffff00
+  }
+
   public onUpdate (delta: number): void {
-    if (this.tween != null) {
-      this.tween.update()
-    }
   }
 
   public redraw (): void {
     if (this._points == null || this._points.length === 0) return
     this.graphics.clear()
+    if (this._stroke !== null) {
+      this.graphics.lineStyle(4, this._stroke)
+    }
     this.graphics.beginFill(this._fillColor)
     this.graphics.drawPolygon(
       this._points
@@ -108,5 +93,5 @@ export class EditablePolygon extends BaseElement {
     this.graphics.endFill()
   }
 
-  // #endregion Public Methods (8)
+  // #endregion Public Methods (10)
 }
