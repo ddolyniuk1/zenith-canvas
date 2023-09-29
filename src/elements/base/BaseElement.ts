@@ -6,12 +6,13 @@ import GraphicsMixin from '../../base/mixins/GraphicsMixin'
 import type IDraggable from '../../base/interfaces/IDraggable'
 
 export default abstract class BaseElement extends Mixin(ContainerResolverMixin, EventEmitterMixin, GraphicsMixin) implements IScriptObject, IDraggable {
-  // #region Properties (2)
+  // #region Properties (3)
 
   private _canUpdate: boolean = false
+  private readonly _cleanupOperations: Array<() => void> = new Array<() => void>()
   private _isSelected: boolean
 
-  // #endregion Properties (2)
+  // #endregion Properties (3)
 
   // #region Public Accessors (4)
 
@@ -43,7 +44,20 @@ export default abstract class BaseElement extends Mixin(ContainerResolverMixin, 
 
   // #endregion Public Accessors (4)
 
-  // #region Public Methods (3)
+  // #region Public Methods (4)
+
+  public onCleanup (): void {
+    while (this._cleanupOperations.length > 0) {
+      const operation = this._cleanupOperations.pop()
+      if (operation !== undefined) {
+        operation()
+      }
+    }
+  }
+
+  public registerForCleanup (operation: () => void): void {
+    this._cleanupOperations.push(operation)
+  }
 
   public onDragMove (evt: any): void {}
 
@@ -51,16 +65,16 @@ export default abstract class BaseElement extends Mixin(ContainerResolverMixin, 
 
   public onDragStop (): void {}
 
-  // #endregion Public Methods (3)
+  // #endregion Public Methods (4)
 
-  // #region Public Abstract Methods (4)
+  // #region Public Abstract Methods (6)
 
-  public abstract onSelected (): void
-  public abstract onDeselected (): void
   public abstract onAwake (): void
+  public abstract onDeselected (): void
   public abstract onDestroyed (): void
+  public abstract onSelected (): void
   public abstract onStart (): void
   public abstract onUpdate (delta: number): void
 
-  // #endregion Public Abstract Methods (4)
+  // #endregion Public Abstract Methods (6)
 }

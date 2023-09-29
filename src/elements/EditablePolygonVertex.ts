@@ -54,16 +54,24 @@ export default class EditablePolygonVertex extends BaseElement {
   }
 
   public onStart (): void {
-    this.container.interactionManager.registerInteractions(this)
+    this.registerForCleanup(this.container.interactionManager.scaleFactor.subscribe(function (oldValue: number, newValue: number) { this.redraw() }.bind(this)))
+
     this.graphics.position.x = this._initialPosition.x
     this.graphics.position.y = this._initialPosition.y
+    this.redraw()
+  }
+
+  public redraw (): void {
+    this.graphics.clear()
+    const scale = this.container.interactionManager.scaleFactor.value
+    this.container.interactionManager.registerInteractions(this)
     if (this.isSelected) {
-      this.graphics.lineStyle(2, 0xFFFF00) // Red stroke
+      this.graphics.lineStyle(2 / scale, 0xFFFF00) // Red stroke
     } else {
-      this.graphics.lineStyle(2, 0xFF0000) // Red stroke
+      this.graphics.lineStyle(2 / scale, 0xFF0000) // Red stroke
     }
     this.graphics.beginFill(0xFFD700) // Gold fill color
-    this.graphics.drawEllipse(0, 0, 25, 25) // Draw an ellipse
+    this.graphics.drawEllipse(0, 0, 5 / scale, 5 / scale) // Draw an ellipse
     this.graphics.endFill()
   }
 

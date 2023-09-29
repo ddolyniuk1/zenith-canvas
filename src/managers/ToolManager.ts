@@ -25,17 +25,18 @@ export default class ToolManager extends BaseManager {
 
   // #region Public Methods (5)
 
-  public onClick (event: any): void {
+  public onClick (event: any, target: any | null): void {
     console.log('click')
+    console.dir(target)
     if (this._activeTool != null) {
-      this._activeTool.onClick(event)
+      this._activeTool.onClick(event, target)
     }
   }
 
-  public onDoubleClick (event: any): void {
+  public onDoubleClick (event: any, target: any | null): void {
     console.log('dblclick')
     if (this._activeTool != null) {
-      this._activeTool.onDoubleClick(event)
+      this._activeTool.onDoubleClick(event, target)
     }
   }
 
@@ -60,6 +61,7 @@ export default class ToolManager extends BaseManager {
     if (isDefault) {
       this._defaultTool = tool
     }
+    this.setActiveTool(key)
   }
 
   public setActiveTool (key: string): void {

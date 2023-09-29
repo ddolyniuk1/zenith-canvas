@@ -15,6 +15,7 @@ export class EditablePolygon extends BaseElement {
     this.container?.interactionManager.registerInteractions(this)
     this.canUpdate = true
     this.fillColor = 0x5d0015
+    this.registerForCleanup(this.container.interactionManager.scaleFactor.subscribe(function (oldValue: number, newValue: number) { this.redraw() }.bind(this)))
   }
 
   // #endregion Properties (5)
@@ -81,10 +82,11 @@ export class EditablePolygon extends BaseElement {
   }
 
   public redraw (): void {
+    const scale = this.container.interactionManager.scaleFactor.value
     if (this._points == null || this._points.length === 0) return
     this.graphics.clear()
     if (this._stroke !== null) {
-      this.graphics.lineStyle(4, this._stroke)
+      this.graphics.lineStyle(4 / scale, this._stroke)
     }
     this.graphics.beginFill(this._fillColor)
     this.graphics.drawPolygon(

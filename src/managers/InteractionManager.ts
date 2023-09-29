@@ -1,27 +1,29 @@
 import * as PIXI from 'pixi.js'
 import BaseManager from './base/BaseManager'
 import type BaseElement from '../elements/base/BaseElement'
+import { ObservableNumber } from '../base/utility/Observable'
 
 export const InteractionEventNames = {
   DoubleClick: 'doubleclick',
   Click: 'click',
   KeyDown: 'keydown',
-  KeyUp: 'keyup'
+  KeyUp: 'keyup',
+  ObjectClicked: 'objectclicked'
 }
 
 export default class InteractionManager extends BaseManager {
-  // #region Properties (6)
+  // #region Properties (8)
 
   private _dragStartPosition: PIXI.Point
   private _dragTarget: BaseElement | null = null
-  private _lastClicked: BaseElement | null = null
   private _draggingCanvas: boolean = false
   private _initialClickEvent: any
+  private _lastClicked: BaseElement | null = null
   private _panZoomContainer: PIXI.Container<PIXI.DisplayObject>
-  private _scaleFactor: number = 1
   private _pointerDownTarget: BaseElement | null
+  private readonly _scaleFactor: ObservableNumber = new ObservableNumber(1)
 
-  // #endregion Properties (6)
+  // #endregion Properties (8)
 
   // #region Constructors (1)
 
@@ -39,7 +41,7 @@ export default class InteractionManager extends BaseManager {
 
   // #endregion Constructors (1)
 
-  // #region Public Accessors (2)
+  // #region Public Accessors (4)
 
   public get lastClicked (): BaseElement | null {
     return this._lastClicked
@@ -49,7 +51,11 @@ export default class InteractionManager extends BaseManager {
     this._lastClicked = value
   }
 
-  // #endregion Public Accessors (2)
+  public get scaleFactor (): ObservableNumber {
+    return this._scaleFactor
+  }
+
+  // #endregion Public Accessors (4)
 
   // #region Public Methods (9)
 
@@ -77,8 +83,8 @@ export default class InteractionManager extends BaseManager {
     const dragHandlerAny = this._dragTarget?.graphics as any
     this._dragTarget?.onDragMove(event)
     const mousePos = event.data.global
-    dragHandlerAny.x += (mousePos.x - this._dragStartPosition.x) / this._scaleFactor
-    dragHandlerAny.y += (mousePos.y - this._dragStartPosition.y) / this._scaleFactor
+    dragHandlerAny.x += (mousePos.x - this._dragStartPosition.x) / this.scaleFactor.value
+    dragHandlerAny.y += (mousePos.y - this._dragStartPosition.y) / this.scaleFactor.value
     this._dragStartPosition = new PIXI.Point(mousePos.x, mousePos.y)
   }
 
@@ -117,20 +123,27 @@ export default class InteractionManager extends BaseManager {
     // Handle dragging to pan the stage
     stage.interactive = true
 
+    let doubleClickTimeout: any | null = null
     let clickCount = 0
+    const completedCallback = (): void => {
+      if (clickCount === 1) {
+        this.emit(InteractionEventNames.Click, this._initialClickEvent, this.lastClicked)
+      } else {
+        this.emit(InteractionEventNames.DoubleClick, this._initialClickEvent, this.lastClicked)
+      }
+      clickCount = 0
+      this.lastClicked = null
+    }
     stage.on('pointerdown', (event: any) => {
       clickCount++
       if (clickCount === 1) {
         this._initialClickEvent = event
-        setTimeout(() => {
-          if (clickCount === 1) {
-            this.emit(InteractionEventNames.Click, this._initialClickEvent)
-          } else {
-            this.emit(InteractionEventNames.DoubleClick, this._initialClickEvent)
-          }
-          clickCount = 0
-          this.lastClicked = null
-        }, 300)
+        doubleClickTimeout = setTimeout(completedCallback, 300)
+      } else {
+        if (doubleClickTimeout != null) {
+          clearTimeout(doubleClickTimeout)
+          completedCallback()
+        }
       }
       if (this._dragTarget != null) {
         this.draggableDragStart(event)
@@ -165,12 +178,12 @@ export default class InteractionManager extends BaseManager {
     })
 
     stage.on('wheel', (event: any) => {
-      this._scaleFactor *= event.deltaY < 0 ? 1.1 : 0.9
+      this.scaleFactor.value *= event.deltaY < 0 ? 1.1 : 0.9
       // Get the mouse position relative to the container
       const mousePos = this._panZoomContainer.toLocal(event.data.global)
 
       // Scale the container
-      this._panZoomContainer.scale.set(this._scaleFactor)
+      this._panZoomContainer.scale.set(this.scaleFactor.value)
 
       // Calculate the new mouse position after scaling
       const newPos = this._panZoomContainer.toGlobal(mousePos)
@@ -202,6 +215,7 @@ export default class InteractionManager extends BaseManager {
         if (this._pointerDownTarget === element) {
           this.lastClicked = element
           this._pointerDownTarget = null
+          this.emit(InteractionEventNames.ObjectClicked, element)
         }
       }
       g.on('pointerdown', pointerDownHandler)
@@ -221,17 +235,17 @@ export default class InteractionManager extends BaseManager {
     // Calculate the scale factor to accommodate the child's size versus the actual screen size
     const scaleFactorX = this.container.pixi.renderer.width / cW
     const scaleFactorY = this.container.pixi.renderer.height / cH
-    this._scaleFactor = Math.min(scaleFactorX, scaleFactorY)
+    this.scaleFactor.value = Math.min(scaleFactorX, scaleFactorY)
 
     // Scale the container to accommodate the child's size
-    this._panZoomContainer.scale.set(this._scaleFactor)
+    this._panZoomContainer.scale.set(this.scaleFactor.value)
 
     // Get the child's global position
     const childPos = child.toGlobal(new PIXI.Point())
 
     // Calculate the difference between the child's position and the center of the container
-    const diffX = this.container.pixi.renderer.width / 2 - childPos.x - (cW / 2) * this._scaleFactor
-    const diffY = this.container.pixi.renderer.height / 2 - childPos.y - (cH / 2) * this._scaleFactor
+    const diffX = this.container.pixi.renderer.width / 2 - childPos.x - (cW / 2) * this.scaleFactor.value
+    const diffY = this.container.pixi.renderer.height / 2 - childPos.y - (cH / 2) * this.scaleFactor.value
 
     // Move the container to center the child
     this._panZoomContainer.x = diffX
