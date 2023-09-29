@@ -15,7 +15,7 @@ export class EditablePolygon extends BaseElement {
     this.container?.interactionManager.registerInteractions(this)
     this.canUpdate = true
     this.fillColor = 0x5d0015
-    this.registerForCleanup(this.container.interactionManager.scaleFactor.subscribe(function (oldValue: number, newValue: number) { this.redraw() }.bind(this)))
+    this.registerForCleanup(this.container.interactionManager.scaleFactor.subscribe((oldValue: number, newValue: number) => { this.redraw() }))
   }
 
   // #endregion Properties (5)

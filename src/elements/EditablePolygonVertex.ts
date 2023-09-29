@@ -54,7 +54,7 @@ export default class EditablePolygonVertex extends BaseElement {
   }
 
   public onStart (): void {
-    this.registerForCleanup(this.container.interactionManager.scaleFactor.subscribe(function (oldValue: number, newValue: number) { this.redraw() }.bind(this)))
+    this.registerForCleanup(this.container.interactionManager.scaleFactor.subscribe((oldValue: number, newValue: number) => { this.redraw() }))
 
     this.graphics.position.x = this._initialPosition.x
     this.graphics.position.y = this._initialPosition.y
